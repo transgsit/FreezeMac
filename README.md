@@ -6,9 +6,13 @@
 *A macOS app that freezes keyboard and trackpad input while you clean your MacBook or let a child watch a video. The screen keeps working; only input is locked.*
 
 <p align="center">
-  <img src="docs/images/intro.png" width="32%" alt="FreezeMac main window">
-  <img src="docs/images/blackout.png" width="32%" alt="Frosty blackout animation">
-  <img src="docs/images/unlock.png" width="32%" alt="Unlock methods">
+  <img src="docs/images/intro.png" width="32%" alt="Cleaning mode: the FreezeMac window">
+  <img src="docs/images/kids.png" width="32%" alt="Watch mode: a video keeps playing while input is locked">
+  <img src="docs/images/blackout.png" width="32%" alt="Blackout mode: Frosty hides in the notch and the screen goes dark">
+</p>
+<p align="center">
+  <img src="docs/images/unlock.png" width="32%" alt="Choose how to unlock">
+  <img src="docs/images/safety.png" width="32%" alt="Always unlocks on its own">
 </p>
 
 ## 기능

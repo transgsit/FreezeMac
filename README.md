@@ -28,8 +28,10 @@
 ## 설치
 
 1. [Releases](../../releases)에서 `FreezeMac.zip`을 내려받아 압축을 풀고 `FreezeMac.app`을 응용 프로그램 폴더로 옮겨요.
-2. 아직 Apple 서명·공증을 받지 않은 앱이라, 처음 열 때 **오른쪽 클릭 → 열기**로 실행해요.
-   그래도 막히면 시스템 설정 › 개인정보 보호 및 보안 아래쪽의 **"그래도 열기"**를 눌러요.
+2. 아직 Apple 공증을 받지 않은 앱이라, 처음 열면 "확인할 수 없다"는 경고가 떠요.
+   **완료**를 누른 뒤 시스템 설정 › 개인정보 보호 및 보안 아래쪽의 **"그래도 열기"**를 누르고 다시 열어요.
+   터미널을 쓴다면 `xattr -dr com.apple.quarantine /Applications/FreezeMac.app` 로도 열 수 있어요.
+   ※ 10월 2일 이전에 받은 파일에서 "손상되었다"는 메시지가 뜨면, 서명이 불완전했던 예전 파일이에요. 새로 받아 주세요.
 3. 앱 안내에 따라 **시스템 설정 › 개인정보 보호 및 보안 › 손쉬운 사용**에서 FreezeMac을 허용해요.
    입력을 막으려면 이 권한이 꼭 필요해요. FreezeMac은 입력 내용을 기록하거나 저장하지 않아요.
 
@@ -41,11 +43,11 @@ Xcode 16 이상이 필요해요.
 
 ```sh
 xcodebuild -project FreezeMac.xcodeproj -scheme FreezeMac -configuration Release \
-  -derivedDataPath .derivedData CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath .derivedData CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
 open .derivedData/Build/Products/Release/FreezeMac.app
 ```
 
-서명 없이 빌드하면 빌드할 때마다 서명이 바뀌어서, 손쉬운 사용 권한을 다시 켜야 할 수 있어요.
+임시(ad-hoc) 서명이라 빌드할 때마다 서명이 바뀌어서, 손쉬운 사용 권한을 다시 켜야 할 수 있어요.
 목록에 FreezeMac이 있는데 동작하지 않으면 `−` 버튼으로 지우고 다시 추가해 주세요.
 
 ## 알아두세요

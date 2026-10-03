@@ -40,7 +40,7 @@ struct FreezeMacApp: App {
                 }
             }
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView(model: model)

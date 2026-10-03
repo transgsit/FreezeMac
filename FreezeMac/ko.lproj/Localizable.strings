@@ -111,3 +111,17 @@
 "s" = "초";
 "slide to unlock" = "밀어서 해제";
 "trackpad & mouse" = "트랙패드와 마우스";
+
+/* SPEC-003 Additions */
+"Auto-Unlock" = "자동 해제";
+"Black Out Displays" = "화면 꺼짐 (청소용)";
+"Black out displays (cleaning)" = "화면 꺼짐 (청소용)";
+"Click the Trackpad" = "트랙패드 클릭";
+"Countdown" = "카운트다운";
+"Frosty Animation" = "Frosty 연출";
+"Hold a Key" = "키 길게 누르기";
+"Move Lock Window" = "잠금 창 움직이기";
+"Startup" = "시작";
+"Type a Word" = "단어 입력";
+"What to Lock" = "잠글 것";
+

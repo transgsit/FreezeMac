@@ -224,3 +224,126 @@ struct ModeCard: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
+
+// MARK: - Common Shared Components (SPEC-003)
+
+// MARK: Status Chip
+
+struct FrostyStatusChip: View {
+    let phase: LockPhase
+    let statusText: String
+
+    var body: some View {
+        let tint: Color = phase.isBusy ? .orange : Frosty.accent
+        HStack(spacing: 6) {
+            Circle()
+                .fill(tint)
+                .frame(width: 7, height: 7)
+            Text(statusText)
+                .font(.caption.weight(.medium))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(tint.opacity(0.14), in: Capsule())
+    }
+}
+
+// MARK: Section Header
+
+struct FrostySectionHeader: View {
+    let title: String
+
+    init(_ title: String) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title)
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .foregroundStyle(Frosty.ink)
+    }
+}
+
+// MARK: Capsule & Chip Buttons
+
+struct FrostyCapsuleButtonStyle: ButtonStyle {
+    var isHighlighted: Bool = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.subheadline, design: .rounded).weight(.medium))
+            .foregroundStyle(isHighlighted ? Color.white : Frosty.accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(
+                isHighlighted ? Frosty.accent : Frosty.accent.opacity(configuration.isPressed ? 0.22 : 0.12),
+                in: Capsule()
+            )
+    }
+}
+
+struct FrostyChipButtonStyle: ButtonStyle {
+    var isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.caption, design: .rounded).weight(.medium))
+            .foregroundStyle(isSelected ? Color.white : Frosty.accent)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(
+                isSelected ? Frosty.accent : Frosty.accent.opacity(configuration.isPressed ? 0.22 : 0.12),
+                in: Capsule()
+            )
+    }
+}
+
+// MARK: Compact Mode Card (for 300pt popup)
+
+struct FrostyCompactModeCard: View {
+    let title: String
+    let symbol: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.white : Frosty.accent)
+                    .frame(width: 26, height: 26)
+                    .background(isSelected ? Frosty.accent : Frosty.accent.opacity(0.14), in: Circle())
+
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundStyle(Frosty.ink)
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Frosty.accent)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                isSelected ? Frosty.accent.opacity(0.13) : Frosty.card,
+                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(isSelected ? Frosty.accent : Frosty.cardEdge, lineWidth: isSelected ? 2 : 1)
+            )
+            .shadow(color: Frosty.shadow, radius: isSelected ? 6 : 3, y: 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+

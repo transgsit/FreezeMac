@@ -48,25 +48,11 @@ struct FreezeMacWindowView: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text("FreezeMac")
                     .font(.system(size: 25, weight: .bold, design: .rounded))
-                statusChip
+                FrostyStatusChip(phase: model.phase, statusText: model.statusText)
             }
 
             Spacer()
         }
-    }
-
-    private var statusChip: some View {
-        let tint: Color = model.phase.isBusy ? .orange : Frosty.accent
-        return HStack(spacing: 6) {
-            Circle()
-                .fill(tint)
-                .frame(width: 7, height: 7)
-            Text(model.statusText)
-                .font(.caption.weight(.medium))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(tint.opacity(0.14), in: Capsule())
     }
 
     // MARK: Permission

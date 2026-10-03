@@ -28,6 +28,11 @@
 		A10000000000000000000010 /* FrostyMascotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* FrostyMascotView.swift */; };
 		A10000000000000000000011 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* Localizable.strings */; };
 		A10000000000000000000012 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* Credits.rtf */; };
+		A10000000000000000000013 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000015 /* AppPreferences.swift */; };
+		A10000000000000000000014 /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* LoginItem.swift */; };
+		A10000000000000000000015 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* GlobalHotKey.swift */; };
+		A10000000000000000000016 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000018 /* MenuBarView.swift */; };
+		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +59,11 @@
 		B10000000000000000000011 /* FrostyMascotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrostyMascotView.swift; sourceTree = "<group>"; };
 		B10000000000000000000013 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B10000000000000000000014 /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
+		B10000000000000000000015 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
+		B10000000000000000000016 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
+		B10000000000000000000017 /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
+		B10000000000000000000018 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		B10000000000000000000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +111,11 @@
 				B1000000000000000000000A /* FreezeMac.entitlements */,
 				B1000000000000000000000C /* Assets.xcassets */,
 				B1000000000000000000000D /* FreezeMacAppDelegate.swift */,
+				B10000000000000000000015 /* AppPreferences.swift */,
+				B10000000000000000000016 /* LoginItem.swift */,
+				B10000000000000000000017 /* GlobalHotKey.swift */,
+				B10000000000000000000018 /* MenuBarView.swift */,
+				B10000000000000000000019 /* SettingsView.swift */,
 			);
 			path = FreezeMac;
 			sourceTree = "<group>";
@@ -221,6 +236,11 @@
 				A1000000000000000000000E /* BlackoutStage.swift in Sources */,
 				A1000000000000000000000D /* FrostyTheme.swift in Sources */,
 				A1000000000000000000000B /* FreezeMacAppDelegate.swift in Sources */,
+				A10000000000000000000013 /* AppPreferences.swift in Sources */,
+				A10000000000000000000014 /* LoginItem.swift in Sources */,
+				A10000000000000000000015 /* GlobalHotKey.swift in Sources */,
+				A10000000000000000000016 /* MenuBarView.swift in Sources */,
+				A10000000000000000000017 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,7 +354,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FreezeMac/FreezeMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -343,7 +363,7 @@
 				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 FreezeMac";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.local.FreezeMac;
 				PRODUCT_NAME = FreezeMac;
 				SDKROOT = macosx;
@@ -358,7 +378,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FreezeMac/FreezeMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -367,7 +387,7 @@
 				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 FreezeMac";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.local.FreezeMac;
 				PRODUCT_NAME = FreezeMac;
 				SDKROOT = macosx;

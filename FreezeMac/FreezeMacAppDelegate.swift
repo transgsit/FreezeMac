@@ -2,38 +2,38 @@ import AppKit
 
 @MainActor
 final class FreezeMacAppDelegate: NSObject, NSApplicationDelegate {
-    private var mainWindowCloseObserver: NSObjectProtocol?
-    private var isTerminating = false
+    var openMainWindowHandler: (() -> Void)?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApplication.shared.setActivationPolicy(.regular)
-        NSApplication.shared.activate(ignoringOtherApps: true)
 
-        mainWindowCloseObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            Task { @MainActor in
-                guard let self,
-                      !self.isTerminating,
-                      let window = notification.object as? NSWindow,
-                      !(window is NSPanel),
-                      window.title == "FreezeMac" else { return }
-
-                self.isTerminating = true
-                NSApplication.shared.terminate(nil)
+        let prefs = AppPreferences.load()
+        if prefs.openMainWindowAtLaunch {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        } else {
+            DispatchQueue.main.async {
+                for window in NSApplication.shared.windows where !(window is NSPanel) && window.title == "FreezeMac" {
+                    window.close()
+                }
             }
         }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
     }
 
-    deinit {
-        if let mainWindowCloseObserver {
-            NotificationCenter.default.removeObserver(mainWindowCloseObserver)
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            if let openMainWindowHandler {
+                openMainWindowHandler()
+            } else {
+                for window in NSApplication.shared.windows where !(window is NSPanel) && window.title == "FreezeMac" {
+                    window.makeKeyAndOrderFront(nil)
+                }
+            }
         }
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        return true
     }
 }

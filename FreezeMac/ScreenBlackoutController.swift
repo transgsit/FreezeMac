@@ -14,11 +14,11 @@ final class ScreenBlackoutController {
     private var isLeaving = false
 
     /// Frosty hops into the island and the screen turns black from there.
-    func show(screens: [NSScreen]) {
+    func show(screens: [NSScreen], frostyAnimationEnabled: Bool = true) {
         tearDownNow()
         generation += 1
 
-        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion || !frostyAnimationEnabled
         // Frosty lives on the screen with the notch, else the main screen.
         let frostyScreen = screens.first { $0.islandGeometry.isHardwareNotch }
             ?? screens.first { $0 == NSScreen.main }

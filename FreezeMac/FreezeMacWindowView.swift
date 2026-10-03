@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FreezeMacWindowView: View {
     @ObservedObject var model: FreezeMacModel
-    @AppStorage("advancedOptionsExpanded") private var advancedExpanded = false
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -21,7 +21,7 @@ struct FreezeMacWindowView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Label("FreezeMac quits completely when you close this window", systemImage: "power")
+            Label("FreezeMac keeps running in the menu bar when this window is closed", systemImage: "menubar.arrow.up.rectangle")
                 .font(.caption)
                 .foregroundStyle(Frosty.inkSoft)
         }
@@ -111,7 +111,7 @@ struct FreezeMacWindowView: View {
 
             summaryCard
 
-            advancedOptions
+            openSettingsButton
 
             actionButton
         }
@@ -211,26 +211,14 @@ struct FreezeMacWindowView: View {
         .frostyCard(padding: 12)
     }
 
-    private var advancedOptions: some View {
-        DisclosureGroup(isExpanded: $advancedExpanded) {
-            VStack(alignment: .leading, spacing: 14) {
-                if model.blackoutScreen {
-                    displayPicker
-                    Divider()
-                }
-
-                windowMovement
-
-                Divider()
-
-                unlockSettings
-            }
-            .padding(.top, 12)
+    private var openSettingsButton: some View {
+        Button {
+            openSettings()
+            NSApplication.shared.activate(ignoringOtherApps: true)
         } label: {
-            Text("Advanced options")
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            Label("Open Settings", systemImage: "gearshape")
         }
-        .frostyCard()
+        .buttonStyle(FrostySecondaryButtonStyle())
     }
 
     @ViewBuilder
@@ -289,139 +277,6 @@ struct FreezeMacWindowView: View {
         case .ending:
             ProgressView()
                 .frame(maxWidth: .infinity)
-        }
-    }
-
-    // MARK: Advanced options: set once and forget
-
-    private var windowMovement: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Toggle("Move the lock window around", isOn: $model.settings.moveWindowEnabled)
-                .frostySwitch()
-            if model.settings.moveWindowEnabled {
-                Stepper(
-                    "Move every \(model.settings.moveWindowSeconds) s",
-                    value: $model.settings.moveWindowSeconds,
-                    in: UnlockSettings.moveIntervalRange
-                )
-                .font(.subheadline)
-                Text("Uncovers every part of the screen so you can clean under the window too.")
-                    .font(.caption)
-                    .foregroundStyle(Frosty.inkSoft)
-            }
-        }
-        .disabled(model.phase.isBusy)
-    }
-
-    private var unlockSettings: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Unlock settings")
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
-
-            HStack {
-                Toggle("Hold a key", isOn: $model.settings.holdKeyEnabled)
-                    .frostySwitch()
-                Spacer()
-                Button(model.isRecordingUnlockKey ? "Press a key…" : KeyCodes.name(for: model.settings.holdKeyCode)) {
-                    if model.isRecordingUnlockKey {
-                        model.endRecordingUnlockKey()
-                    } else {
-                        model.beginRecordingUnlockKey()
-                    }
-                }
-                .buttonStyle(.bordered)
-                .disabled(!model.settings.holdKeyEnabled)
-            }
-            if model.settings.holdKeyEnabled {
-                Stepper(
-                    "Hold for \(model.settings.holdKeySeconds) s",
-                    value: $model.settings.holdKeySeconds,
-                    in: UnlockSettings.holdSecondsRange
-                )
-                .font(.subheadline)
-            }
-
-            Toggle("Type a word", isOn: $model.settings.wordEnabled)
-                .frostySwitch()
-            if model.settings.wordEnabled {
-                TextField("Word (3–16 letters or digits)", text: $model.settings.word)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                if KeyCodes.codes(for: model.settings.word) == nil {
-                    Text("Use only A–Z and 0–9, 3 to 16 characters. Keys are matched by position, so it works while typing Korean too.")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-
-            Toggle("Click the trackpad", isOn: $model.settings.clickEnabled)
-                .frostySwitch()
-                .disabled(!model.lockPointer)
-            if model.settings.clickEnabled && model.lockPointer {
-                Stepper(
-                    "Click \(model.settings.clickCount) times in a row",
-                    value: $model.settings.clickCount,
-                    in: UnlockSettings.clickCountRange
-                )
-                .font(.subheadline)
-                Text("Tap-to-click counts as a click too.")
-                    .font(.caption)
-                    .foregroundStyle(Frosty.inkSoft)
-            } else if !model.lockPointer {
-                Text("Turn on \"Lock trackpad and mouse\" to use click unlock.")
-                    .font(.caption)
-                    .foregroundStyle(Frosty.inkSoft)
-            }
-
-            // Kid watching sets the time in minutes on the main screen instead.
-            if model.preset != .kids {
-                HStack {
-                    Text("Auto-unlock after")
-                    Spacer()
-                    TextField("", value: $model.settings.autoUnlockSeconds, format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 64)
-                    Text("s")
-                    Stepper(
-                        "",
-                        value: $model.settings.autoUnlockSeconds,
-                        in: UnlockSettings.autoUnlockRange,
-                        step: 10
-                    )
-                    .labelsHidden()
-                }
-                Text("\(durationText(model.settings.autoUnlockSeconds)). Always on (10 s to 1 h), so the lock can never get stuck.")
-                    .font(.caption)
-                    .foregroundStyle(Frosty.inkSoft)
-            }
-        }
-        .disabled(model.phase.isBusy)
-    }
-
-    private var displayPicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Picker("Displays to black out", selection: $model.settings.blackoutAllDisplays) {
-                Text("All displays").tag(true)
-                Text("Selected displays").tag(false)
-            }
-            .pickerStyle(.segmented)
-            .disabled(model.phase.isBusy)
-
-            if !model.settings.blackoutAllDisplays {
-                ForEach(model.displays) { display in
-                    Toggle(
-                        display.isMain ? String(localized: "\(display.name) (main)") : display.name,
-                        isOn: Binding(
-                            get: { model.settings.blackoutDisplayIDs.contains(display.id) },
-                            set: { model.setDisplay(display.id, selected: $0) }
-                        )
-                    )
-                    .frostySwitch()
-                    .disabled(model.phase.isBusy)
-                }
-            }
         }
     }
 }

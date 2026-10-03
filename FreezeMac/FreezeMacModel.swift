@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Combine
 import Foundation
 
 @MainActor
@@ -41,6 +42,21 @@ final class FreezeMacModel: ObservableObject {
         }
     }
 
+    @Published var preferences = AppPreferences.load() {
+        didSet {
+            let clamped = preferences.clamped()
+            if clamped != preferences {
+                preferences = clamped
+                return
+            }
+            preferences.save()
+            syncHotKey()
+        }
+    }
+
+    let loginItem = LoginItem()
+    let hotKey = GlobalHotKey()
+
     /// nil when the values were adjusted by hand (no mode button is highlighted).
     @Published private(set) var preset = LockPreset.stored()
     private var isApplyingPreset = false
@@ -57,12 +73,25 @@ final class FreezeMacModel: ObservableObject {
     private var sessionTimerTask: Task<Void, Never>?
     private var escapeHoldTask: Task<Void, Never>?
     private var notificationTokens: [NSObjectProtocol] = []
+    private var cancellables = Set<AnyCancellable>()
     private var hudModel: LockHUDViewModel?
     private var keyRecorder: Any?
     private var activeHoldSeconds = 3
 
     init() {
         refreshPermission()
+
+        loginItem.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        hotKey.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
 
         inputBlocker.onSignal = { [weak self] signal in
             Task { @MainActor in
@@ -73,6 +102,11 @@ final class FreezeMacModel: ObservableObject {
         observeSafetyNotifications()
         observeDisplayChanges()
         observeAppActivation()
+
+        hotKey.onTrigger = { [weak self] in
+            self?.handleGlobalHotKey()
+        }
+        syncHotKey()
 
         // First launch: start from the Cleaning preset. Anyone with saved
         // settings keeps their values and starts with no mode highlighted.
@@ -93,6 +127,23 @@ final class FreezeMacModel: ObservableObject {
             return String(localized: "Locking in \(value)…")
         case .locked:
             return String(localized: "Keyboard locked")
+        case .ending:
+            return String(localized: "Unlocking…")
+        }
+    }
+
+    var formattedRemainingTime: String {
+        String(format: "%d:%02d", remainingSeconds / 60, remainingSeconds % 60)
+    }
+
+    var menuStatusText: String {
+        switch phase {
+        case .idle:
+            return String(localized: "Keyboard is available")
+        case .countdown(let value):
+            return String(localized: "Locking in \(value)…")
+        case .locked:
+            return String(localized: "Locked · Time remaining \(formattedRemainingTime)")
         case .ending:
             return String(localized: "Unlocking…")
         }
@@ -233,6 +284,27 @@ final class FreezeMacModel: ObservableObject {
         NSWorkspace.shared.open(url)
     }
 
+    func syncHotKey() {
+        hotKey.update(
+            enabled: preferences.hotKeyEnabled,
+            keyCode: preferences.hotKeyCode,
+            modifiers: preferences.hotKeyModifiers
+        )
+    }
+
+    func handleGlobalHotKey() {
+        switch phase {
+        case .idle:
+            refreshPermission()
+            guard permissionGranted else { return }
+            beginCountdown()
+        case .countdown:
+            cancelCountdown()
+        case .locked, .ending:
+            break
+        }
+    }
+
     func beginCountdown() {
         guard phase == .idle else { return }
         refreshPermission()
@@ -244,10 +316,17 @@ final class FreezeMacModel: ObservableObject {
 
         errorMessage = nil
         countdownTask?.cancel()
+
+        let seconds = preferences.countdownSeconds
+        if seconds <= 0 {
+            startSession()
+            return
+        }
+
         countdownTask = Task { [weak self] in
             guard let self else { return }
 
-            for value in stride(from: 3, through: 1, by: -1) {
+            for value in stride(from: seconds, through: 1, by: -1) {
                 guard !Task.isCancelled else { return }
                 phase = .countdown(value)
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -344,7 +423,10 @@ final class FreezeMacModel: ObservableObject {
         phase = .locked
 
         if options.blackoutScreen {
-            blackoutController.show(screens: screensToBlackOut())
+            blackoutController.show(
+                screens: screensToBlackOut(),
+                frostyAnimationEnabled: preferences.frostyAnimationEnabled
+            )
         }
 
         if options.lockPointer {

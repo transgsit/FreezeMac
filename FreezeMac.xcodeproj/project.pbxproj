@@ -33,6 +33,7 @@
 		A10000000000000000000015 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* GlobalHotKey.swift */; };
 		A10000000000000000000016 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000018 /* MenuBarView.swift */; };
 		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* SettingsView.swift */; };
+		A10000000000000000000018 /* CountdownHUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001A /* CountdownHUDController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +65,7 @@
 		B10000000000000000000017 /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
 		B10000000000000000000018 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		B10000000000000000000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B1000000000000000000001A /* CountdownHUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownHUDController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 				B10000000000000000000017 /* GlobalHotKey.swift */,
 				B10000000000000000000018 /* MenuBarView.swift */,
 				B10000000000000000000019 /* SettingsView.swift */,
+				B1000000000000000000001A /* CountdownHUDController.swift */,
 			);
 			path = FreezeMac;
 			sourceTree = "<group>";
@@ -241,6 +244,7 @@
 				A10000000000000000000015 /* GlobalHotKey.swift in Sources */,
 				A10000000000000000000016 /* MenuBarView.swift in Sources */,
 				A10000000000000000000017 /* SettingsView.swift in Sources */,
+				A10000000000000000000018 /* CountdownHUDController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

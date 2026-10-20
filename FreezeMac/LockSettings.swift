@@ -84,20 +84,30 @@ struct UnlockSettings: Codable, Equatable {
 
     /// Human-readable list of the unlock methods that are active for a session.
     func hints(lockPointer: Bool) -> [String] {
-        var hints: [String] = []
+        hintItems(lockPointer: lockPointer).map(\.text)
+    }
+
+    /// The same unlock methods, each with its own icon for the lock window.
+    func hintItems(lockPointer: Bool) -> [UnlockHint] {
+        var hints: [UnlockHint] = []
         if holdKeyEnabled {
             let key = KeyCodes.name(for: holdKeyCode)
-            hints.append(String(localized: "Hold \(key) for \(holdKeySeconds) s"))
+            hints.append(UnlockHint(symbol: "keyboard", text: String(localized: "Hold \(key) for \(holdKeySeconds) s")))
         }
         if wordEnabled {
             let typed = word.uppercased()
-            hints.append(String(localized: "Type \(typed)"))
+            hints.append(UnlockHint(symbol: "character.cursor.ibeam", text: String(localized: "Type \(typed)")))
         }
         if clickEnabled && lockPointer {
-            hints.append(String(localized: "Click \(clickCount)×"))
+            hints.append(UnlockHint(symbol: "cursorarrow.click.2", text: String(localized: "Click \(clickCount)×")))
         }
         return hints
     }
+}
+
+struct UnlockHint: Hashable {
+    let symbol: String
+    let text: String
 }
 
 /// What the event tap watches for. A snapshot taken when a session starts.

@@ -190,9 +190,9 @@ struct ModeCard: View {
                 HStack {
                     Image(systemName: symbol)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(isSelected ? Color.white : Frosty.accent)
+                        .foregroundStyle(isSelected ? Color.white : Frosty.inkSoft)
                         .frame(width: 32, height: 32)
-                        .background(isSelected ? Frosty.accent : Frosty.accent.opacity(0.14), in: Circle())
+                        .background(isSelected ? Frosty.accent : Frosty.inkSoft.opacity(0.12), in: Circle())
                     Spacer()
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
@@ -264,6 +264,47 @@ struct FrostySectionHeader: View {
     }
 }
 
+// MARK: Toggle Row
+
+/// A label on the left and a switch on the right edge. With `isHeader`, the row doubles as a card title.
+struct FrostyToggleRow: View {
+    let title: String
+    @Binding var isOn: Bool
+    var isDisabled: Bool = false
+    var isHeader: Bool = false
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(isHeader
+                    ? .system(.subheadline, design: .rounded).weight(.semibold)
+                    : .system(.subheadline, design: .rounded))
+                .foregroundStyle(isDisabled ? Frosty.inkSoft : Frosty.ink)
+            Spacer()
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .frostySwitch()
+                .disabled(isDisabled)
+        }
+    }
+}
+
+// MARK: Text Field
+
+extension View {
+    /// A small text field that matches the card color in light and dark mode.
+    func frostyField() -> some View {
+        textFieldStyle(.plain)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Frosty.card, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .strokeBorder(Frosty.cardEdge, lineWidth: 1)
+            )
+    }
+}
+
 // MARK: Capsule & Chip Buttons
 
 struct FrostyCapsuleButtonStyle: ButtonStyle {
@@ -309,29 +350,24 @@ struct FrostyCompactModeCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            // Icon above title, so longer names (and Korean) wrap instead of truncating.
+            VStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.white : Frosty.accent)
+                    .foregroundStyle(isSelected ? Color.white : Frosty.inkSoft)
                     .frame(width: 26, height: 26)
-                    .background(isSelected ? Frosty.accent : Frosty.accent.opacity(0.14), in: Circle())
+                    .background(isSelected ? Frosty.accent : Frosty.inkSoft.opacity(0.12), in: Circle())
 
                 Text(title)
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
                     .foregroundStyle(Frosty.ink)
-                    .lineLimit(1)
-
-                Spacer(minLength: 0)
-
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Frosty.accent)
-                }
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 isSelected ? Frosty.accent.opacity(0.13) : Frosty.card,
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)

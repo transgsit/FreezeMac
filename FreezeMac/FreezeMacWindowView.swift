@@ -3,6 +3,7 @@ import SwiftUI
 struct FreezeMacWindowView: View {
     @ObservedObject var model: FreezeMacModel
     @Environment(\.openSettings) private var openSettings
+    @State private var isSettingsHovered = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -52,7 +53,26 @@ struct FreezeMacWindowView: View {
             }
 
             Spacer()
+
+            settingsButton
         }
+    }
+
+    private var settingsButton: some View {
+        Button {
+            openSettings()
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(isSettingsHovered ? Frosty.accent : Frosty.inkSoft)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isSettingsHovered = $0 }
+        .help(String(localized: "Open Settings"))
+        .accessibilityLabel(String(localized: "Open Settings"))
     }
 
     // MARK: Permission
@@ -97,8 +117,6 @@ struct FreezeMacWindowView: View {
 
             summaryCard
 
-            openSettingsButton
-
             actionButton
         }
     }
@@ -126,7 +144,7 @@ struct FreezeMacWindowView: View {
             }
             .disabled(model.phase.isBusy)
 
-            Text(model.preset?.detail ?? String(localized: "Custom settings. Tap a mode to reset to its defaults."))
+            Text(model.preset?.detail ?? String(localized: "Custom settings. Click a mode to reset to its defaults."))
                 .font(.caption)
                 .foregroundStyle(Frosty.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
@@ -135,13 +153,19 @@ struct FreezeMacWindowView: View {
 
     private var lockOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle("Lock trackpad and mouse", isOn: $model.lockPointer)
-                .disabled(model.phase.isBusy)
+            FrostyToggleRow(
+                title: String(localized: "Lock trackpad and mouse"),
+                isOn: $model.lockPointer,
+                isDisabled: model.phase.isBusy
+            )
 
             // A child watching a video needs the screen visible, so this mode hides the option.
             if model.preset != .kids {
-                Toggle("Black out displays", isOn: $model.blackoutScreen)
-                    .disabled(model.phase.isBusy)
+                FrostyToggleRow(
+                    title: String(localized: "Black out displays"),
+                    isOn: $model.blackoutScreen,
+                    isDisabled: model.phase.isBusy
+                )
 
                 if model.blackoutScreen {
                     Text("Screen blackout also locks the trackpad and mouse.")
@@ -156,7 +180,6 @@ struct FreezeMacWindowView: View {
                 freezeMinutes
             }
         }
-        .frostySwitch()
         .frostyCard()
     }
 
@@ -170,7 +193,7 @@ struct FreezeMacWindowView: View {
                 Text("Freeze for")
                 Spacer()
                 TextField("", value: minutes, format: .number)
-                    .textFieldStyle(.roundedBorder)
+                    .frostyField()
                     .multilineTextAlignment(.trailing)
                     .frame(width: 56)
                 Text("min")
@@ -195,16 +218,6 @@ struct FreezeMacWindowView: View {
         .font(.subheadline)
         .labelStyle(SummaryLabelStyle())
         .frostyCard(padding: 12)
-    }
-
-    private var openSettingsButton: some View {
-        Button {
-            openSettings()
-            NSApplication.shared.activate(ignoringOtherApps: true)
-        } label: {
-            Label("Open Settings", systemImage: "gearshape")
-        }
-        .buttonStyle(FrostySecondaryButtonStyle())
     }
 
     @ViewBuilder
@@ -239,12 +252,18 @@ struct FreezeMacWindowView: View {
             }
 
         case .countdown(let value):
-            Button {
-                model.cancelCountdown()
-            } label: {
-                Text("Cancel — locking in \(value)…")
+            VStack(spacing: 6) {
+                Button {
+                    model.cancelCountdown()
+                } label: {
+                    Text("Cancel — locking in \(value)…")
+                }
+                .buttonStyle(FrostySecondaryButtonStyle())
+
+                Text("You can also press ESC")
+                    .font(.caption)
+                    .foregroundStyle(Frosty.inkSoft)
             }
-            .buttonStyle(FrostySecondaryButtonStyle())
 
         case .locked:
             if !model.lockPointer {
@@ -272,7 +291,7 @@ private struct SummaryLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             configuration.icon
-                .foregroundStyle(Frosty.accent)
+                .foregroundStyle(Frosty.inkSoft)
                 .frame(width: 16)
             configuration.title
                 .fixedSize(horizontal: false, vertical: true)

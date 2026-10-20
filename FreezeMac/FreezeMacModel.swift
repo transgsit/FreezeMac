@@ -68,10 +68,14 @@ final class FreezeMacModel: ObservableObject {
     private let blackoutController = ScreenBlackoutController()
     private let pointerShieldController = PointerShieldController()
     private let hudController = LockHUDController()
+    private let countdownEscapeKey = GlobalHotKey(id: 2)
+    private let countdownHUDController = CountdownHUDController()
 
     private var countdownTask: Task<Void, Never>?
     private var sessionTimerTask: Task<Void, Never>?
     private var escapeHoldTask: Task<Void, Never>?
+    private var escapeGlobalMonitor: Any?
+    private var escapeLocalMonitor: Any?
     private var notificationTokens: [NSObjectProtocol] = []
     private var cancellables = Set<AnyCancellable>()
     private var hudModel: LockHUDViewModel?
@@ -108,12 +112,30 @@ final class FreezeMacModel: ObservableObject {
         }
         syncHotKey()
 
+        countdownEscapeKey.onTrigger = { [weak self] in
+            self?.cancelCountdown(byEscape: true)
+        }
+
         // First launch: start from the Cleaning preset. Anyone with saved
         // settings keeps their values and starts with no mode highlighted.
         if LockPreset.stored() == nil && !UnlockSettings.hasSavedValue {
             applyPreset(.cleaning)
         }
+
+        // One-time move of Kid watching from the old 1-minute default to 10 minutes.
+        let kidsMigrationKey = "migration.kidsAutoUnlock600"
+        if !UserDefaults.standard.bool(forKey: kidsMigrationKey) {
+            if preset == .kids && settings.autoUnlockSeconds < Self.kidsDefaultSeconds {
+                applyPreset(.kids)
+            }
+            UserDefaults.standard.set(true, forKey: kidsMigrationKey)
+        }
     }
+
+    /// Kid watching's default (and preset reset) auto-unlock time.
+    static let kidsDefaultSeconds = 600
+    /// Longest auto-unlock offered by Cleaning's quick choices (5 min).
+    static let cleaningMaxSeconds = 300
 
     deinit {
         notificationTokens.forEach(NotificationCenter.default.removeObserver)
@@ -214,10 +236,13 @@ final class FreezeMacModel: ObservableObject {
         blackoutScreen = profile.blackoutScreen
         settings.moveWindowEnabled = profile.moveWindowEnabled
         settings.clickEnabled = profile.clickEnabled
+        // The auto-unlock time is shared by both modes, so each mode pulls it back into its own range.
         if newPreset == .kids {
-            // Kid watching sets its time in whole minutes.
+            // Kid watching sets its time in whole minutes, 10 min at the shortest by default.
             let seconds = settings.autoUnlockSeconds
-            settings.autoUnlockSeconds = min(3600, max(60, (seconds + 59) / 60 * 60))
+            settings.autoUnlockSeconds = min(3600, max(Self.kidsDefaultSeconds, (seconds + 59) / 60 * 60))
+        } else if settings.autoUnlockSeconds > Self.cleaningMaxSeconds {
+            settings.autoUnlockSeconds = 60
         }
         isApplyingPreset = false
         preset = newPreset
@@ -299,7 +324,7 @@ final class FreezeMacModel: ObservableObject {
             guard permissionGranted else { return }
             beginCountdown()
         case .countdown:
-            cancelCountdown()
+            cancelCountdown(byEscape: false)
         case .locked, .ending:
             break
         }
@@ -323,29 +348,79 @@ final class FreezeMacModel: ObservableObject {
             return
         }
 
+        startCountdownEscapeMonitoring()
+        countdownHUDController.show(seconds: seconds, isKidsMode: preset == .kids) { [weak self] in
+            self?.cancelCountdown(byEscape: false)
+        }
+
         countdownTask = Task { [weak self] in
             guard let self else { return }
 
             for value in stride(from: seconds, through: 1, by: -1) {
                 guard !Task.isCancelled else { return }
                 phase = .countdown(value)
+                countdownHUDController.update(seconds: value)
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
 
+            guard !Task.isCancelled else { return }
+            stopCountdownEscapeMonitoring()
+            await countdownHUDController.fadeOutAndClose(duration: 0.15)
             guard !Task.isCancelled else { return }
             startSession()
         }
     }
 
-    func cancelCountdown() {
+    func cancelCountdown(byEscape: Bool = false) {
+        stopCountdownEscapeMonitoring()
         countdownTask?.cancel()
         countdownTask = nil
         phase = .idle
+        if byEscape {
+            countdownHUDController.showCanceled()
+        } else {
+            countdownHUDController.closeImmediately()
+        }
+    }
+
+    private func startCountdownEscapeMonitoring() {
+        stopCountdownEscapeMonitoring()
+        countdownEscapeKey.update(enabled: true, keyCode: 53, modifiers: 0)
+
+        if countdownEscapeKey.registrationFailed {
+            escapeGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                if event.keyCode == 53 {
+                    Task { @MainActor in
+                        self?.cancelCountdown(byEscape: true)
+                    }
+                }
+            }
+            escapeLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                if event.keyCode == 53 {
+                    Task { @MainActor in
+                        self?.cancelCountdown(byEscape: true)
+                    }
+                }
+                return event
+            }
+        }
+    }
+
+    private func stopCountdownEscapeMonitoring() {
+        countdownEscapeKey.unregister()
+        if let escapeGlobalMonitor {
+            NSEvent.removeMonitor(escapeGlobalMonitor)
+            self.escapeGlobalMonitor = nil
+        }
+        if let escapeLocalMonitor {
+            NSEvent.removeMonitor(escapeLocalMonitor)
+            self.escapeLocalMonitor = nil
+        }
     }
 
     private func stopForSafety(message: String) {
         if case .countdown = phase {
-            cancelCountdown()
+            cancelCountdown(byEscape: false)
             errorMessage = message
         } else {
             endSession(message: message)
@@ -355,6 +430,9 @@ final class FreezeMacModel: ObservableObject {
     func endSession(message: String? = nil) {
         guard phase == .locked || phase == .ending else { return }
         phase = .ending
+
+        stopCountdownEscapeMonitoring()
+        countdownHUDController.closeImmediately()
 
         countdownTask?.cancel()
         sessionTimerTask?.cancel()
@@ -399,7 +477,7 @@ final class FreezeMacModel: ObservableObject {
             durationSeconds: settings.autoUnlockSeconds,
             triggers: triggers,
             holdSeconds: settings.holdKeySeconds,
-            unlockHints: settings.hints(lockPointer: lockPointer)
+            unlockHints: settings.hintItems(lockPointer: lockPointer)
         )
         activeHoldSeconds = options.holdSeconds
 
@@ -422,17 +500,6 @@ final class FreezeMacModel: ObservableObject {
         remainingSeconds = options.durationSeconds
         phase = .locked
 
-        if options.blackoutScreen {
-            blackoutController.show(
-                screens: screensToBlackOut(),
-                frostyAnimationEnabled: preferences.frostyAnimationEnabled
-            )
-        }
-
-        if options.lockPointer {
-            pointerShieldController.show()
-        }
-
         let hudModel = LockHUDViewModel(
             remainingSeconds: remainingSeconds,
             totalSeconds: options.durationSeconds,
@@ -444,10 +511,30 @@ final class FreezeMacModel: ObservableObject {
             }
         )
         self.hudModel = hudModel
-        hudController.show(
-            model: hudModel,
-            moveEvery: settings.moveWindowEnabled ? settings.moveWindowSeconds : nil
-        )
+
+        let moveEvery = settings.moveWindowEnabled ? settings.moveWindowSeconds : nil
+
+        if options.blackoutScreen {
+            blackoutController.show(
+                screens: screensToBlackOut(),
+                frostyAnimationEnabled: preferences.frostyAnimationEnabled,
+                onCovered: { [weak self] in
+                    guard let self, self.phase == .locked, self.hudModel === hudModel else { return }
+                    self.hudController.show(model: hudModel, moveEvery: moveEvery, fadeIn: true)
+                }
+            )
+        }
+
+        if options.lockPointer {
+            pointerShieldController.show()
+        }
+
+        if !options.blackoutScreen {
+            hudController.show(
+                model: hudModel,
+                moveEvery: moveEvery
+            )
+        }
 
         startSessionTimer()
     }
@@ -581,6 +668,8 @@ final class FreezeMacModel: ObservableObject {
                     self?.pointerShieldController.hide()
                     self?.blackoutController.hide(animated: false)
                     self?.hudController.close()
+                    self?.stopCountdownEscapeMonitoring()
+                    self?.countdownHUDController.closeImmediately()
                 }
             }
         )

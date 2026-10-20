@@ -14,9 +14,18 @@ final class ScreenBlackoutController {
     private var isLeaving = false
 
     /// Frosty hops into the island and the screen turns black from there.
-    func show(screens: [NSScreen], frostyAnimationEnabled: Bool = true) {
+    func show(
+        screens: [NSScreen],
+        frostyAnimationEnabled: Bool = true,
+        onCovered: (() -> Void)? = nil
+    ) {
         tearDownNow()
         generation += 1
+
+        guard !screens.isEmpty else {
+            onCovered?()
+            return
+        }
 
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion || !frostyAnimationEnabled
         // Frosty lives on the screen with the notch, else the main screen.
@@ -35,8 +44,19 @@ final class ScreenBlackoutController {
         }
 
         entries.forEach { $0.window.orderFrontRegardless() }
+
+        let id = generation
+        var remaining = entries.count
+
         tasks = entries.map { entry in
-            Task { await entry.stage.playEntry() }
+            Task { [weak self] in
+                await entry.stage.playEntry()
+                guard let self, self.generation == id, !self.isLeaving, !Task.isCancelled, entry.stage.isEntryFinished else { return }
+                remaining -= 1
+                if remaining == 0 {
+                    onCovered?()
+                }
+            }
         }
     }
 

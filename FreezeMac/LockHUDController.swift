@@ -7,10 +7,10 @@ final class LockHUDController {
     private var moveTask: Task<Void, Never>?
     private var lastCell: Int?
 
-    func show(model: LockHUDViewModel, moveEvery seconds: Int? = nil) {
+    func show(model: LockHUDViewModel, moveEvery seconds: Int? = nil, fadeIn: Bool = false) {
         close()
 
-        let hintsHeight = CGFloat(model.unlockHints.count) * 22 + (model.unlockHints.isEmpty ? 0 : 14)
+        let hintsHeight = CGFloat(model.unlockHints.count) * 22 + (model.unlockHints.isEmpty ? 0 : 14 + 18)
         let size = CGSize(width: 390, height: 122 + hintsHeight + (model.pointerLocked ? 0 : 64))
         let frame = Self.frame(size: size, centered: model.blackoutEnabled)
         let panel = NSPanel(
@@ -32,7 +32,18 @@ final class LockHUDController {
             : .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.ignoresMouseEvents = model.pointerLocked
-        panel.orderFrontRegardless()
+
+        if fadeIn {
+            panel.alphaValue = 0
+            panel.orderFrontRegardless()
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.3
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                panel.animator().alphaValue = 1
+            }
+        } else {
+            panel.orderFrontRegardless()
+        }
 
         self.panel = panel
 

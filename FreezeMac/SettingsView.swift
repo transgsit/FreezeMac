@@ -40,27 +40,6 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Toggle Row Helper (AC-16)
-
-private struct SettingsToggleRow: View {
-    let title: String
-    @Binding var isOn: Bool
-    var isDisabled: Bool = false
-
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.system(.subheadline, design: .rounded))
-                .foregroundStyle(isDisabled ? Frosty.inkSoft : Frosty.ink)
-            Spacer()
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-                .frostySwitch()
-                .disabled(isDisabled)
-        }
-    }
-}
-
 // MARK: - General Tab
 
 private struct GeneralSettingsTab: View {
@@ -75,8 +54,8 @@ private struct GeneralSettingsTab: View {
                 VStack(alignment: .leading, spacing: 10) {
                     FrostySectionHeader(String(localized: "Startup"))
 
-                    SettingsToggleRow(
-                        title: String(localized: "Launch at Login"),
+                    FrostyToggleRow(
+                        title: String(localized: "Launch at login"),
                         isOn: Binding(
                             get: { model.loginItem.isEnabled },
                             set: { model.loginItem.setEnabled($0) }
@@ -102,12 +81,12 @@ private struct GeneralSettingsTab: View {
                             .foregroundStyle(.orange)
                     }
 
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Open main window at launch"),
                         isOn: $model.preferences.openMainWindowAtLaunch
                     )
 
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Show remaining time in menu bar"),
                         isOn: $model.preferences.showRemainingTimeInMenuBar
                     )
@@ -118,7 +97,7 @@ private struct GeneralSettingsTab: View {
                 VStack(alignment: .leading, spacing: 10) {
                     FrostySectionHeader(String(localized: "Shortcut"))
 
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Use global shortcut"),
                         isOn: $model.preferences.hotKeyEnabled
                     )
@@ -227,28 +206,6 @@ private struct LockSettingsTab: View {
                     }
                 }
                 .frostyCard()
-
-                // Section 2: What to Lock
-                VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "What to Lock"))
-
-                    SettingsToggleRow(
-                        title: String(localized: "Lock trackpad and mouse"),
-                        isOn: $model.lockPointer
-                    )
-
-                    SettingsToggleRow(
-                        title: String(localized: "Black out displays"),
-                        isOn: $model.blackoutScreen
-                    )
-
-                    if model.blackoutScreen {
-                        Text("Screen blackout also locks the trackpad and mouse.")
-                            .font(.caption)
-                            .foregroundStyle(Frosty.inkSoft)
-                    }
-                }
-                .frostyCard()
             }
             .padding(18)
         }
@@ -266,11 +223,10 @@ private struct UnlockSettingsTab: View {
             VStack(spacing: 14) {
                 // Section 1: Hold a Key
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Hold a Key"))
-
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Hold a key"),
-                        isOn: $model.settings.holdKeyEnabled
+                        isOn: $model.settings.holdKeyEnabled,
+                        isHeader: true
                     )
 
                     if model.settings.holdKeyEnabled {
@@ -304,16 +260,15 @@ private struct UnlockSettingsTab: View {
 
                 // Section 2: Type a Word
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Type a Word"))
-
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Type a word"),
-                        isOn: $model.settings.wordEnabled
+                        isOn: $model.settings.wordEnabled,
+                        isHeader: true
                     )
 
                     if model.settings.wordEnabled {
                         TextField(String(localized: "Word (3–16 letters or digits)"), text: $model.settings.word)
-                            .textFieldStyle(.roundedBorder)
+                            .frostyField()
                             .autocorrectionDisabled()
                             .tint(Frosty.accent)
 
@@ -329,12 +284,11 @@ private struct UnlockSettingsTab: View {
 
                 // Section 3: Click the Trackpad
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Click the Trackpad"))
-
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Click the trackpad"),
                         isOn: $model.settings.clickEnabled,
-                        isDisabled: !model.lockPointer
+                        isDisabled: !model.lockPointer,
+                        isHeader: true
                     )
 
                     if model.settings.clickEnabled && model.lockPointer {
@@ -360,7 +314,7 @@ private struct UnlockSettingsTab: View {
 
                 // Section 4: Auto-Unlock
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Auto-Unlock"))
+                    FrostySectionHeader(String(localized: "Auto-unlock"))
 
                     HStack {
                         Text("Auto-unlock after")
@@ -368,7 +322,7 @@ private struct UnlockSettingsTab: View {
                             .foregroundStyle(Frosty.ink)
                         Spacer()
                         TextField("", value: $model.settings.autoUnlockSeconds, format: .number)
-                            .textFieldStyle(.roundedBorder)
+                            .frostyField()
                             .multilineTextAlignment(.trailing)
                             .frame(width: 64)
                             .tint(Frosty.accent)
@@ -408,13 +362,14 @@ private struct ScreenSettingsTab: View {
             VStack(spacing: 14) {
                 // Section 1: Black Out Displays
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Black Out Displays"))
+                    FrostySectionHeader(String(localized: "Choose displays"))
 
                     Picker(String(localized: "Displays to black out"), selection: $model.settings.blackoutAllDisplays) {
                         Text("All displays").tag(true)
                         Text("Selected displays").tag(false)
                     }
                     .pickerStyle(.segmented)
+                    .labelsHidden()
                     .tint(Frosty.accent)
 
                     if !model.settings.blackoutAllDisplays {
@@ -440,22 +395,20 @@ private struct ScreenSettingsTab: View {
 
                 // Section 2: Frosty Animation
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Frosty Animation"))
-
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Frosty blackout animation"),
-                        isOn: $model.preferences.frostyAnimationEnabled
+                        isOn: $model.preferences.frostyAnimationEnabled,
+                        isHeader: true
                     )
                 }
                 .frostyCard()
 
                 // Section 3: Move Lock Window
                 VStack(alignment: .leading, spacing: 10) {
-                    FrostySectionHeader(String(localized: "Move Lock Window"))
-
-                    SettingsToggleRow(
+                    FrostyToggleRow(
                         title: String(localized: "Move the lock window around"),
-                        isOn: $model.settings.moveWindowEnabled
+                        isOn: $model.settings.moveWindowEnabled,
+                        isHeader: true
                     )
 
                     if model.settings.moveWindowEnabled {

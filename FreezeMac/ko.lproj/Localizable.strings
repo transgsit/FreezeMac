@@ -24,7 +24,6 @@
 "Click %lld×" = "%lld번 클릭";
 "Click the trackpad" = "트랙패드 클릭하기";
 "Countdown before locking" = "시작 전 카운트다운";
-"Custom settings. Tap a mode to reset to its defaults." = "직접 조정한 설정이에요. 모드를 누르면 기본값으로 돌아가요.";
 "Displays to black out" = "화면 꺼짐 (청소용)";
 "Ends the keyboard lock session" = "키보드 잠금을 끝내요";
 "Freeze for" = "얼려 둘 시간";
@@ -48,7 +47,6 @@
 "Keyboard is available" = "키보드 사용 가능";
 "Keyboard locked" = "키보드 잠김";
 "Kid watching" = "아이들 영상감상";
-"Launch at Login" = "로그인 시 자동 실행";
 "Lock" = "잠금";
 "Lock trackpad and mouse" = "트랙패드와 마우스도 잠그기";
 "Locked · Time remaining %@" = "잠금 중 · 남은 시간 %@";
@@ -58,7 +56,6 @@
 "Move the lock window around" = "잠금 창 옮겨 다니기";
 "No manual unlock is on" = "직접 해제하는 방법이 모두 꺼져 있어요";
 "None" = "없음";
-"Open FreezeMac" = "FreezeMac 열기";
 "Open Login Items" = "로그인 항목 열기";
 "Open Settings" = "설정 열기";
 "Open System Settings" = "시스템 설정 열기";
@@ -69,7 +66,6 @@
 "Screen" = "화면";
 "Screen blackout also locks the trackpad and mouse." = "화면을 가리면 트랙패드와 마우스도 함께 잠겨요.";
 "Selected displays" = "선택한 디스플레이";
-"Settings…" = "설정…";
 "Shortcut" = "단축키";
 "Show remaining time in menu bar" = "메뉴 막대에 남은 시간 표시";
 "Slide to unlock" = "밀어서 해제";
@@ -113,15 +109,25 @@
 "trackpad & mouse" = "트랙패드와 마우스";
 
 /* SPEC-003 Additions */
-"Auto-Unlock" = "자동 해제";
-"Black Out Displays" = "화면 꺼짐 (청소용)";
-"Black out displays (cleaning)" = "화면 꺼짐 (청소용)";
-"Click the Trackpad" = "트랙패드 클릭";
 "Countdown" = "카운트다운";
-"Frosty Animation" = "Frosty 연출";
-"Hold a Key" = "키 길게 누르기";
-"Move Lock Window" = "잠금 창 움직이기";
 "Startup" = "시작";
-"Type a Word" = "단어 입력";
-"What to Lock" = "잠글 것";
 
+/* SPEC-005 Additions */
+"Cancel" = "취소";
+"Canceled" = "취소했어요";
+"Freezing your Mac…" = "곧 맥북을 얼려요";
+"Locking the keyboard…" = "곧 키보드를 잠가요";
+"Press ESC to cancel" = "ESC를 누르면 취소돼요";
+"You can also press ESC" = "ESC를 눌러도 취소돼요";
+
+/* SPEC-007 UI polish */
+"Custom settings. Click a mode to reset to its defaults." = "직접 조정한 설정이에요. 모드를 누르면 기본값으로 돌아가요.";
+"to cancel" = "누르면 취소돼요";
+"Open" = "열기";
+"Settings" = "설정";
+"Quit" = "종료";
+"Open the FreezeMac window" = "FreezeMac 창 열기";
+"Auto-unlock" = "자동 해제";
+"Launch at login" = "로그인 시 자동 실행";
+"Choose displays" = "가릴 화면";
+"Ways to unlock" = "잠금 푸는 방법";

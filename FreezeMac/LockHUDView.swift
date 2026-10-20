@@ -26,8 +26,12 @@ struct LockHUDView: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 5) {
+                    Text("Ways to unlock")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Frosty.inkSoft)
+
                     ForEach(model.unlockHints, id: \.self) { hint in
-                        Label("Unlock: \(hint)", systemImage: "lock.open.fill")
+                        Label(hint.text, systemImage: hint.symbol)
                             .font(.subheadline)
                             .labelStyle(HintLabelStyle())
                     }
@@ -92,7 +96,8 @@ private struct HintLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 8) {
             configuration.icon
-                .foregroundStyle(Frosty.accent)
+                .foregroundStyle(Frosty.inkSoft)
+                .frame(width: 18)
             configuration.title
         }
     }

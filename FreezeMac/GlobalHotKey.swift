@@ -6,11 +6,13 @@ import Foundation
 final class GlobalHotKey: ObservableObject {
     @Published var registrationFailed = false
 
+    let id: UInt32
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
     var onTrigger: (() -> Void)?
 
-    init() {
+    init(id: UInt32 = 1) {
+        self.id = id
         installCarbonEventHandler()
     }
 
@@ -29,7 +31,7 @@ final class GlobalHotKey: ObservableObject {
 
         guard enabled else { return }
 
-        let hotKeyID = EventHotKeyID(signature: 0x46525A4D, id: 1) // "FRZM", 1
+        let hotKeyID = EventHotKeyID(signature: 0x46525A4D, id: id) // "FRZM", id
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(
             UInt32(keyCode),
@@ -61,9 +63,25 @@ final class GlobalHotKey: ObservableObject {
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
         )
-        let handlerCallback: EventHandlerUPP = { _, _, userData in
-            guard let userData else { return noErr }
+        let handlerCallback: EventHandlerUPP = { _, inEvent, userData in
+            guard let userData, let inEvent else { return noErr }
+            var hotKeyID = EventHotKeyID()
+            let status = GetEventParameter(
+                inEvent,
+                EventParamName(kEventParamDirectObject),
+                EventParamType(typeEventHotKeyID),
+                nil,
+                MemoryLayout<EventHotKeyID>.size,
+                nil,
+                &hotKeyID
+            )
+            guard status == noErr else { return OSStatus(eventNotHandledErr) }
+
             let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(userData).takeUnretainedValue()
+            guard hotKeyID.signature == 0x46525A4D && hotKeyID.id == hotKey.id else {
+                return OSStatus(eventNotHandledErr)
+            }
+
             DispatchQueue.main.async {
                 hotKey.onTrigger?()
             }

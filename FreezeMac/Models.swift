@@ -46,7 +46,7 @@ struct LockOptions: Equatable {
     let durationSeconds: Int
     let triggers: UnlockTriggers
     let holdSeconds: Int
-    let unlockHints: [String]
+    let unlockHints: [UnlockHint]
 }
 
 @MainActor
@@ -56,7 +56,7 @@ final class LockHUDViewModel: ObservableObject {
     let totalSeconds: Int
     let pointerLocked: Bool
     let blackoutEnabled: Bool
-    let unlockHints: [String]
+    let unlockHints: [UnlockHint]
     let onUnlock: () -> Void
 
     init(
@@ -64,7 +64,7 @@ final class LockHUDViewModel: ObservableObject {
         totalSeconds: Int,
         pointerLocked: Bool,
         blackoutEnabled: Bool,
-        unlockHints: [String],
+        unlockHints: [UnlockHint],
         onUnlock: @escaping () -> Void
     ) {
         self.remainingSeconds = remainingSeconds

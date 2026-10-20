@@ -40,13 +40,14 @@ struct MenuBarView: View {
             FrostyLiveMascot(happy: model.phase.isBusy)
                 .frame(width: 44, height: 44)
 
-            Text("FreezeMac")
-                .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(Frosty.ink)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("FreezeMac")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(Frosty.ink)
+                FrostyStatusChip(phase: model.phase, statusText: model.statusText)
+            }
 
             Spacer()
-
-            FrostyStatusChip(phase: model.phase, statusText: model.statusText)
         }
     }
 
@@ -79,12 +80,18 @@ struct MenuBarView: View {
             idleContent
 
         case .countdown(let value):
-            Button {
-                model.cancelCountdown()
-            } label: {
-                Text("Cancel — locking in \(value)…")
+            VStack(spacing: 6) {
+                Button {
+                    model.cancelCountdown()
+                } label: {
+                    Text("Cancel — locking in \(value)…")
+                }
+                .buttonStyle(FrostySecondaryButtonStyle())
+
+                Text("You can also press ESC")
+                    .font(.caption)
+                    .foregroundStyle(Frosty.inkSoft)
             }
-            .buttonStyle(FrostySecondaryButtonStyle())
 
         case .locked:
             VStack(spacing: 10) {
@@ -140,10 +147,11 @@ struct MenuBarView: View {
                         model.selectPreset(.kids)
                     }
                 }
+                .fixedSize(horizontal: false, vertical: true)
                 .disabled(model.phase.isBusy)
 
                 // 2. Auto-unlock subhead + 4 chips
-                FrostySectionHeader(String(localized: "Auto-Unlock"))
+                FrostySectionHeader(String(localized: "Auto-unlock"))
 
                 let options: [Int] = model.preset == .kids
                     ? [600, 1200, 1800, 3600]
@@ -166,22 +174,23 @@ struct MenuBarView: View {
 
                 // 3. Blackout toggle (cleaning mode only)
                 if model.preset != .kids {
-                    HStack {
-                        Text("Black out displays (cleaning)")
-                            .font(.system(.subheadline, design: .rounded))
-                            .foregroundStyle(Frosty.ink)
-                        Spacer()
-                        Toggle("", isOn: $model.blackoutScreen)
-                            .labelsHidden()
-                            .frostySwitch()
-                            .disabled(model.phase.isBusy)
-                    }
+                    FrostyToggleRow(
+                        title: String(localized: "Black out displays"),
+                        isOn: $model.blackoutScreen,
+                        isDisabled: model.phase.isBusy
+                    )
                 }
             }
             .frostyCard(padding: 12)
 
             // Start button (AC-06)
             VStack(alignment: .leading, spacing: 6) {
+                // How to get out again, before committing to a lock.
+                Label(model.unlockSummary, systemImage: "lock.open")
+                    .font(.caption)
+                    .foregroundStyle(Frosty.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Button {
                     dismissPopup()
                     model.beginCountdown()
@@ -212,7 +221,7 @@ struct MenuBarView: View {
                 .overlay(Frosty.cardEdge)
 
             HStack {
-                Text("Launch at Login")
+                Text("Launch at login")
                     .font(.caption)
                     .foregroundStyle(Frosty.inkSoft)
                 Spacer()
@@ -226,26 +235,29 @@ struct MenuBarView: View {
             }
 
             HStack {
-                FrostyIconButton(title: String(localized: "Open FreezeMac"), systemImage: "macwindow") {
+                FrostyIconButton(title: String(localized: "Open"), systemImage: "macwindow") {
                     dismissPopup()
                     openMainWindow()
                 }
+                .help(String(localized: "Open the FreezeMac window"))
 
                 Spacer()
 
-                FrostyIconButton(title: String(localized: "Settings…"), systemImage: "gearshape") {
+                FrostyIconButton(title: String(localized: "Settings"), systemImage: "gearshape") {
                     dismissPopup()
                     openSettings()
                     NSApplication.shared.activate(ignoringOtherApps: true)
                 }
                 .keyboardShortcut(",")
+                .help(String(localized: "Open Settings"))
 
                 Spacer()
 
-                FrostyIconButton(title: String(localized: "Quit FreezeMac"), systemImage: "power") {
+                FrostyIconButton(title: String(localized: "Quit"), systemImage: "power") {
                     model.quitApplication()
                 }
                 .keyboardShortcut("q")
+                .help(String(localized: "Quit FreezeMac"))
             }
         }
     }

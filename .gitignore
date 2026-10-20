@@ -6,3 +6,6 @@ DerivedData/
 *.xcuserstate
 .moai/
 **/.moai/
+
+# Internal work specs (local only)
+docs/specs/
